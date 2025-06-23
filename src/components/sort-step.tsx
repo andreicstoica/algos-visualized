@@ -8,9 +8,10 @@ export default function SortStep({ step }: { step: PartitionData }) {
     let classes = "";
 
     if (pivotIndex && pivotIndex === index) {
-      classes += "bg-yellow-300";
+      classes += "bg-yellow-400";
     }
 
+    // for the future if i want to add individual comparisons lol
     if (comparingIndeces) {
       const [idx1, idx2] = comparingIndeces;
       if (index === idx1 || index === idx2) {

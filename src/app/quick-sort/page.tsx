@@ -20,8 +20,10 @@ import QuickSortVisualization from "@/components/quick-sort-visualization";
 import {
   quickSortAnimated,
   quickSort,
-  type MultiPartitionStep,
+  type SortStepNode,
 } from "@/lib/quick-sort";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import clsx from "clsx";
 
 const formSchema = z.object({
   numbers: z.string().min(1, {
@@ -32,7 +34,8 @@ const formSchema = z.object({
 export default function QuickSortPage() {
   // STATE //
   const [numberArr, setNumberArr] = useState<number[]>([]);
-  const [steps, setSteps] = useState<MultiPartitionStep[]>([]);
+  const [steps, setSteps] = useState<SortStepNode[]>([]);
+  const [showResult, setShowResult] = useState<boolean>(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -42,6 +45,7 @@ export default function QuickSortPage() {
   type FormData = z.infer<typeof formSchema>;
 
   const onSubmit = (data: FormData) => {
+    setShowResult(true);
     const parsedNumbers = data.numbers
       .split(",")
       .map((numStr) => parseFloat(numStr.trim()))
@@ -68,7 +72,7 @@ export default function QuickSortPage() {
                 <FormLabel>List some numbers</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="19, 8, 1, 29, 11, 0, 12, 13, 4"
+                    placeholder="A list of numbers split by commas"
                     {...field}
                   />
                 </FormControl>
@@ -82,11 +86,22 @@ export default function QuickSortPage() {
 
       <div className="mt-2 flex flex-col gap-2">
         {steps.map((step, i) => (
-          <QuickSortVisualization key={i} steps={steps} currentStepIndex={i} />
+          <QuickSortVisualization key={i} steps={steps} />
         ))}
       </div>
 
-      <div>Final Result: {quickSort(numberArr).toString()}</div>
+      {/* sorted list result card */}
+      <Card
+        className={clsx(
+          showResult === true ? "visible" : "hidden",
+          "mx-auto w-full max-w-md items-center",
+        )}
+      >
+        <CardHeader className="w-full justify-center">
+          <CardTitle>Final Result</CardTitle>
+        </CardHeader>
+        <CardContent>{quickSort(numberArr).toString()}</CardContent>
+      </Card>
     </div>
   );
 }
