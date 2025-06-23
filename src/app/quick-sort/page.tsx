@@ -20,7 +20,7 @@ import QuickSortVisualization from "@/components/quick-sort-visualization";
 import {
   quickSortAnimated,
   quickSort,
-  type SortStepInterface,
+  type MultiPartitionStep,
 } from "@/lib/quick-sort";
 
 const formSchema = z.object({
@@ -32,7 +32,7 @@ const formSchema = z.object({
 export default function QuickSortPage() {
   // STATE //
   const [numberArr, setNumberArr] = useState<number[]>([]);
-  const [steps, setSteps] = useState<SortStepInterface[]>([]);
+  const [steps, setSteps] = useState<MultiPartitionStep[]>([]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -50,7 +50,6 @@ export default function QuickSortPage() {
     if (parsedNumbers.length >= 2) {
       setNumberArr(parsedNumbers);
       setSteps(quickSortAnimated(parsedNumbers));
-      console.log(steps);
     }
   };
 
@@ -81,13 +80,13 @@ export default function QuickSortPage() {
         </form>
       </Form>
 
-      <div className="flex flex-col gap-2">
+      <div className="mt-2 flex flex-col gap-2">
         {steps.map((step, i) => (
           <QuickSortVisualization key={i} steps={steps} currentStepIndex={i} />
         ))}
       </div>
 
-      <div>OG: {quickSort(numberArr).toString()}</div>
+      <div>Final Result: {quickSort(numberArr).toString()}</div>
     </div>
   );
 }
