@@ -1,7 +1,7 @@
 import { Badge } from "./ui/badge";
-import { type SortStepInterface } from "@/lib/quick-sort";
+import { type PartitionData } from "@/lib/quick-sort";
 
-export default function SortStep({ step }: { step: SortStepInterface }) {
+export default function SortStep({ step }: { step: PartitionData }) {
   const { arr, pivotIndex, comparingIndeces } = step;
 
   const getBg = (index: number): string => {
@@ -21,9 +21,13 @@ export default function SortStep({ step }: { step: SortStepInterface }) {
     return classes;
   };
 
-  return arr.map((element: number, index: number) => (
-    <Badge key={index} className={getBg(index)}>
-      {element}
-    </Badge>
-  ));
+  return (
+    <div className="flex flex-row items-center gap-1">
+      {arr.map((element: number, index: number) => (
+        <Badge key={index} className={getBg(index)}>
+          {element}
+        </Badge>
+      ))}
+    </div>
+  );
 }
