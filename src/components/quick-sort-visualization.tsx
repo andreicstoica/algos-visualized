@@ -1,53 +1,70 @@
-import type { MultiPartitionStep } from "@/lib/quick-sort";
+import type { SortStepNode } from "@/lib/quick-sort";
 import SortStep from "./sort-step";
 
+// Recursive node display helper
+function RenderNode({
+  node,
+  depth,
+}: {
+  node: SortStepNode | null;
+  depth: number;
+}) {
+  if (!node) {
+    return null;
+  }
+
+  const { type, partitionData, left, right, originalRange } = node;
+
+  const indentClass = depth > 0 ? `ml-${depth * 6}` : "";
+  const hasChildren = left !== null || right !== null;
+
+  return (
+    <div className={`mb-8 flex w-full flex-col items-start ${indentClass}`}>
+      <div className="flex w-full flex-col items-center gap-4">
+        <SortStep step={partitionData} />
+        {originalRange && (
+          <div className="text-xs text-gray-600">
+            Range: [{originalRange[0]}, {originalRange[1]}]
+          </div>
+        )}
+
+        {/* display labels and og range */}
+        {type === "PARTITION" && (
+          <>
+            <div className="flex w-24 flex-row text-xs text-gray-600">
+              {left && <span className="mr-2">Left</span>}
+              {right && <span>Right</span>}
+            </div>
+          </>
+        )}
+      </div>
+      {/* recursively render children */}
+      {hasChildren && ( // Only render children if this is a PARTITION node with children
+        <div className="mt-4 flex w-full flex-row gap-4">
+          {left && <RenderNode node={left} depth={depth + 1} />}
+          {right && <RenderNode node={right} depth={depth + 1} />}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface QuickSortVisualizationProps {
-  steps: MultiPartitionStep[];
-  currentStepIndex: number;
+  steps: SortStepNode[];
 }
 
 export default function QuickSortVisualization({
   steps,
-  currentStepIndex,
 }: QuickSortVisualizationProps) {
-  const currentLayer = steps[currentStepIndex];
+  const rootNode = steps.length > 0 ? steps[0] : null;
 
-  if (!currentLayer) {
-    return <div>No vis data?</div>;
+  if (!rootNode) {
+    return <div>Fill in the list!</div>;
   }
 
-  const { singlePartition, leftPartition, rightPartition, originalRange } =
-    currentLayer;
-
-  const rowStyle = "flex w-40 flex-col items-center gap-2";
   return (
-    <div className="flex w-full flex-row flex-wrap items-start justify-center gap-4 p-4">
-      {singlePartition && (
-        <div className={rowStyle}>
-          <h4>Current Array State</h4>
-          <SortStep step={singlePartition} />
-        </div>
-      )}
-
-      {leftPartition && (
-        <div className={rowStyle}>
-          <h4>Left</h4>
-          <SortStep step={leftPartition} />
-        </div>
-      )}
-
-      {rightPartition && (
-        <div className={rowStyle}>
-          <h4>Right</h4>
-          <SortStep step={rightPartition} />
-        </div>
-      )}
-
-      {originalRange && (
-        <div className="mt-2 ml-4 text-sm text-gray-600">
-          Original Range: [{originalRange[0]}, {originalRange[1]}]
-        </div>
-      )}
+    <div className="flex w-full flex-col items-center">
+      <RenderNode node={rootNode} depth={0} />
     </div>
   );
 }
