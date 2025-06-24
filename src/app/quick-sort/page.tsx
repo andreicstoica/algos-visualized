@@ -7,23 +7,34 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 
 import QuickSortVisualization from "@/components/quick-sort-visualization";
 import {
-  quickSortAnimated,
   quickSort,
-  type SortStepNode,
+  type AnimatedTreeNode,
+  quickSortAnimatedTree,
 } from "@/lib/quick-sort";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import clsx from "clsx";
 
 const formSchema = z.object({
   numbers: z.string().min(1, {
@@ -34,8 +45,11 @@ const formSchema = z.object({
 export default function QuickSortPage() {
   // STATE //
   const [numberArr, setNumberArr] = useState<number[]>([]);
-  const [steps, setSteps] = useState<SortStepNode[]>([]);
   const [showResult, setShowResult] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(true);
+  const [tree, setTree] = useState<AnimatedTreeNode | null>(null);
+  const [animationDone, setAnimationDone] = useState(false);
+  const [visibleDepth, setVisibleDepth] = useState(0);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -45,6 +59,7 @@ export default function QuickSortPage() {
   type FormData = z.infer<typeof formSchema>;
 
   const onSubmit = (data: FormData) => {
+    setShowModal(false);
     setShowResult(true);
     const parsedNumbers = data.numbers
       .split(",")
@@ -53,55 +68,106 @@ export default function QuickSortPage() {
 
     if (parsedNumbers.length >= 2) {
       setNumberArr(parsedNumbers);
-      setSteps(quickSortAnimated(parsedNumbers));
+      setTree(quickSortAnimatedTree(parsedNumbers));
+    } else {
+      setNumberArr([]);
+      setTree(null);
     }
   };
 
   return (
-    <div>
-      <h1>Quick Sort Visualization</h1>
-      <p>Visualize the quick sort algorithm step by step.</p>
+    <div className="mt-2 flex flex-col gap-2">
+      <Card className="bg-secondary-background mx-auto w-fit">
+        <CardHeader className="flex flex-col items-center">
+          <CardTitle className="text-center">
+            Quick Sort Visualization
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center">
+          <p className="text-center">
+            Visualize the quick sort algorithm step by step.
+          </p>
+          <Button
+            className="mt-4"
+            onClick={() => setVisibleDepth((d) => d + 1)}
+          >
+            Next Step
+          </Button>
+        </CardContent>
+      </Card>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="numbers"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>List some numbers</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="A list of numbers split by commas"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      {/* alert dialog for number input */}
+      <AlertDialog open={showModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Visualizing Quick Sort</AlertDialogTitle>
+            <AlertDialogDescription>
+              List some numbers separated by commas. Quick sort uses a pivot to
+              do its magic... this demo just uses the last number as the pivot.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="numbers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="1, 2, 3" {...field} />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      1,8,3,7,4,6 - a premade list, for you to sort
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button type="submit">Continue</Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </form>
+          </Form>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* viz animation after modal is closed and valid numbers are present */}
+      {showResult && tree && (
+        <div className="mt-2 flex flex-col gap-2">
+          <QuickSortVisualization
+            tree={tree}
+            maxDepth={visibleDepth}
+            onAnimationComplete={() => setAnimationDone(true)}
           />
-          <Button type="submit">Submit</Button>
-        </form>
-      </Form>
-
-      <div className="mt-2 flex flex-col gap-2">
-        {steps.map((step, i) => (
-          <QuickSortVisualization key={i} steps={steps} />
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* sorted list result card */}
-      <Card
-        className={clsx(
-          showResult === true ? "visible" : "hidden",
-          "mx-auto w-full max-w-md items-center",
+      <AnimatePresence>
+        {showResult && numberArr.length > 0 && animationDone && (
+          <motion.div
+            key="final-result"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, type: "spring" }}
+          >
+            <Card className="bg-secondary-background mx-auto w-fit items-center px-10 py-8 whitespace-nowrap">
+              <CardHeader className="w-full justify-center">
+                <CardTitle>Final Result</CardTitle>
+              </CardHeader>
+              <CardContent>{quickSort(numberArr).toString()}</CardContent>
+            </Card>
+          </motion.div>
         )}
-      >
-        <CardHeader className="w-full justify-center">
-          <CardTitle>Final Result</CardTitle>
-        </CardHeader>
-        <CardContent>{quickSort(numberArr).toString()}</CardContent>
-      </Card>
+      </AnimatePresence>
     </div>
   );
 }

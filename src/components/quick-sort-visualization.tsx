@@ -1,70 +1,114 @@
-import type { SortStepNode } from "@/lib/quick-sort";
+import type { AnimatedTreeNode } from "@/lib/quick-sort";
 import SortStep from "./sort-step";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 
-// Recursive node display helper
-function RenderNode({
+function RenderAnimatedNode({
   node,
-  depth,
+  depth = 0,
+  maxDepth = 10,
+  onAllDone,
 }: {
-  node: SortStepNode | null;
-  depth: number;
+  node: AnimatedTreeNode;
+  depth?: number;
+  maxDepth?: number;
+  onAllDone?: () => void;
 }) {
-  if (!node) {
-    return null;
-  }
+  const [stepIndex, setStepIndex] = useState(0);
+  const [animationComplete, setAnimationComplete] = useState(true);
 
-  const { type, partitionData, left, right, originalRange } = node;
+  useEffect(() => {
+    const currentStep = node.steps[stepIndex];
+    const hasAnimation =
+      currentStep?.comparingIndex !== undefined && currentStep?.moveDirection;
 
-  const indentClass = depth > 0 ? `ml-${depth * 6}` : "";
-  const hasChildren = left !== null || right !== null;
+    setAnimationComplete(!hasAnimation);
+
+    if (stepIndex < node.steps.length - 1) {
+      const timeout = setTimeout(() => setStepIndex(stepIndex + 1), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [stepIndex, node.steps]);
+
+  const isDone = stepIndex === node.steps.length - 1 && animationComplete;
+
+  useEffect(() => {
+    if (isDone && !node.left && !node.right) {
+      onAllDone?.();
+    }
+  }, [isDone, node.left, node.right, onAllDone]);
 
   return (
-    <div className={`mb-8 flex w-full flex-col items-start ${indentClass}`}>
-      <div className="flex w-full flex-col items-center gap-4">
-        <SortStep step={partitionData} />
-        {originalRange && (
-          <div className="text-xs text-gray-600">
-            Range: [{originalRange[0]}, {originalRange[1]}]
+    <Card className="bg-background m-2 p-4">
+      <div className="flex flex-col items-center">
+        {/* Current node */}
+        <div className="mb-4">
+          <SortStep
+            step={node.steps[stepIndex]}
+            originalRange={node.originalRange}
+            onMoveComplete={() => setAnimationComplete(true)}
+          />
+        </div>
+
+        {/* Children - only show when animation is done */}
+        {isDone && depth < maxDepth && (node.left ?? node.right) && (
+          <div
+            className="relative flex items-start justify-center"
+            style={{ minWidth: "600px" }}
+          >
+            {/* Left child */}
+            {node.left && (
+              <div className="flex flex-1 justify-center">
+                <RenderAnimatedNode
+                  node={node.left}
+                  depth={depth + 1}
+                  maxDepth={maxDepth}
+                  onAllDone={onAllDone}
+                />
+              </div>
+            )}
+
+            {/* Right child */}
+            {node.right && (
+              <div className="flex flex-1 justify-center">
+                <RenderAnimatedNode
+                  node={node.right}
+                  depth={depth + 1}
+                  maxDepth={maxDepth}
+                  onAllDone={onAllDone}
+                />
+              </div>
+            )}
           </div>
         )}
-
-        {/* display labels and og range */}
-        {type === "PARTITION" && (
-          <>
-            <div className="flex w-24 flex-row text-xs text-gray-600">
-              {left && <span className="mr-2">Left</span>}
-              {right && <span>Right</span>}
-            </div>
-          </>
-        )}
       </div>
-      {/* recursively render children */}
-      {hasChildren && ( // Only render children if this is a PARTITION node with children
-        <div className="mt-4 flex w-full flex-row gap-4">
-          {left && <RenderNode node={left} depth={depth + 1} />}
-          {right && <RenderNode node={right} depth={depth + 1} />}
-        </div>
-      )}
-    </div>
+    </Card>
   );
 }
 
 interface QuickSortVisualizationProps {
-  steps: SortStepNode[];
+  tree: AnimatedTreeNode;
 }
 
 export default function QuickSortVisualization({
-  steps,
-}: QuickSortVisualizationProps) {
-  const rootNode = steps.length > 0 ? steps[0] : null;
-
-  if (!rootNode) {
-    return <div>Fill in the list!</div>;
+  tree,
+  maxDepth = 0,
+  onAnimationComplete,
+}: QuickSortVisualizationProps & {
+  maxDepth?: number;
+  onAnimationComplete?: () => void;
+}) {
+  if (!tree) {
+    return <div>Fill the form with a list!</div>;
   }
-
   return (
-    <div className="flex w-full flex-col items-center">
-      <RenderNode node={rootNode} depth={0} />
+    <div className="relative flex w-full flex-col items-center">
+      <RenderAnimatedNode
+        node={tree}
+        depth={0}
+        maxDepth={maxDepth}
+        onAllDone={onAnimationComplete}
+      />
     </div>
   );
 }
