@@ -16,10 +16,9 @@ export default function HomePage() {
     <main className="flex flex-1 items-center justify-center gap-6">
       <Card className="bg-secondary-background w-fit px-4">
         <CardTitle>Quick Sort</CardTitle>
-        <CardDescription className="max-w-md text-pretty">
-          A highly efficient, in-place sorting algorithm that leverages a
-          &apos;divide and conquer&apos; strategy, quickly sub-dividing around a
-          &apos;pivot&apos;.
+        <CardDescription className="max-w-sm text-pretty">
+          A highly efficient, in-place sorting algorithm using a &apos;divide
+          and conquer&apos; strategy around a &apos;pivot&apos;.
         </CardDescription>
         <CardAction>
           <Button
@@ -33,9 +32,22 @@ export default function HomePage() {
 
       <Card className="bg-secondary-background w-fit px-4">
         <CardTitle>Graph Traversal</CardTitle>
-        <CardDescription className="max-w-md text-pretty">
+        <CardDescription className="max-w-sm text-pretty">
           Explore depth-first and breadth-first search algorithms with
           interactive node-by-node visualization. Coming soon.
+        </CardDescription>
+        <CardAction>
+          <Button disabled className="px-5 py-3">
+            Coming Soon
+          </Button>
+        </CardAction>
+      </Card>
+
+      <Card className="bg-secondary-background w-fit px-4">
+        <CardTitle>Dijkstra&apos;s</CardTitle>
+        <CardDescription className="max-w-sm text-pretty">
+          Find the shortest path using Dijkstra&apos;s algorithm, which
+          revolutionized computer science. Coming soon.
         </CardDescription>
         <CardAction>
           <Button disabled className="px-5 py-3">
