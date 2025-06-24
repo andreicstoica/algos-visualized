@@ -39,7 +39,7 @@ function RenderAnimatedNode({
   }, [isDone, node.left, node.right, onAllDone]);
 
   return (
-    <Card className="bg-background m-2 p-4">
+    <Card className="m-2 p-2">
       <div className="flex flex-col items-center">
         {/* Current node */}
         <div className="mb-4">

@@ -1,37 +1,48 @@
-import Link from "next/link";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
+    <main className="flex flex-1 items-center justify-center gap-6">
+      <Card className="bg-secondary-background w-fit px-4">
+        <CardTitle>Quick Sort</CardTitle>
+        <CardDescription className="max-w-md text-pretty">
+          A highly efficient, in-place sorting algorithm that leverages a
+          &apos;divide and conquer&apos; strategy, quickly sub-dividing around a
+          &apos;pivot&apos;.
+        </CardDescription>
+        <CardAction>
+          <Button
+            onClick={() => router.push("/quick-sort")}
+            className="px-5 py-3"
           >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
-        </div>
-      </div>
+            Visit
+          </Button>
+        </CardAction>
+      </Card>
+
+      <Card className="bg-secondary-background w-fit px-4">
+        <CardTitle>Graph Traversal</CardTitle>
+        <CardDescription className="max-w-md text-pretty">
+          Explore depth-first and breadth-first search algorithms with
+          interactive node-by-node visualization. Coming soon.
+        </CardDescription>
+        <CardAction>
+          <Button disabled className="px-5 py-3">
+            Coming Soon
+          </Button>
+        </CardAction>
+      </Card>
     </main>
   );
 }
