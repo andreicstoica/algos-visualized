@@ -4,95 +4,77 @@ export interface PartitionData {
   comparingIndeces?: [number, number];
 }
 
-export interface MultiPartitionStep {
-  leftPartition?: PartitionData;
-  rightPartition?: PartitionData;
-  singlePartition?: PartitionData;
+export interface SortStepNode {
+  type: "PARTITION" | "BASE_CASE";
+  partitionData: PartitionData;
+  originalRange?: [number, number];
+  left?: SortStepNode | null;
+  right?: SortStepNode | null;
+}
+
+export interface AnimatedStep {
+  arr: number[];
+  comparingIndex?: number;
+  pivotIndex?: number;
+  moveDirection?: "left" | "right" | null; // null for no move
+  leftPartition?: number[];
+  rightPartition?: number[];
+}
+
+export interface AnimatedTreeNode {
+  steps: AnimatedStep[];
+  left?: AnimatedTreeNode | null;
+  right?: AnimatedTreeNode | null;
   originalRange?: [number, number];
 }
 
-// helper function to save 'steps' in quick-sort algo
-function createPartition(
-  arr: number[],
-  pivotIndex?: number,
-  comparingIndeces?: [number, number],
-): PartitionData {
-  return {
-    arr: [...arr], // copy the array
-    pivotIndex,
-    comparingIndeces,
-  };
-}
+export function quickSortAnimated(arr: number[]): AnimatedStep[] {
+  const steps: AnimatedStep[] = [];
 
-export function quickSortAnimated(arr: number[]): MultiPartitionStep[] {
-  const steps: MultiPartitionStep[] = [];
-  //const arr = [...initialArr]; // copy passed array
+  function recursiveQuickSort(currentArr: number[], depth = 0): number[] {
+    if (currentArr.length <= 1) return currentArr;
 
-  //steps.push({ singlePartition: createPartition(arr) }); // add initial step
-
-  const recursiveQuickSort = (
-    currentArr: number[],
-    initialPivotIndex = 0,
-  ): number[] => {
-    // base case: arr is just one element -> sorted!
-    if (currentArr.length <= 1) {
-      return currentArr.filter((n): n is number => n !== undefined);
-    }
-
-    // otherwise, let's pivot around val at index (end of array for now)
-    const currentPivotVal = currentArr[currentArr.length - 1];
-    //const currentPivotIndex = currentArr.length - 1; // last index is pivot
-
-    // doing this later now
-    // const partitionStep = createPartition(currentArr, currentPivotIndex);
-    // steps.push({ singlePartition: partitionStep }); // adding step before split
-
-    if (currentPivotVal === undefined)
-      throw new Error("Pivot undefined but should be (recursiveQuickSort)"); // thanks typescript
-
+    const pivotIndex = currentArr.length - 1;
+    const pivot = currentArr[pivotIndex];
     const left: number[] = [];
     const right: number[] = [];
 
-    // Partition Logic //
-    // iterate over the array, skipping the last element
-    // (will be added after in between left/right arrs)
+    if (pivot === undefined) throw new Error("Pivot is undefined"); // thanks typescript
+
     for (let i = 0; i < currentArr.length - 1; i++) {
       const element = currentArr[i];
-      if (element !== undefined) {
-        if (element < currentPivotVal) left.push(element);
-        else right.push(element);
-      }
+      if (element === undefined) throw new Error("Element is undefined"); // thanks typescript
+
+      const moveDirection = element < pivot ? "left" : "right";
+      steps.push({
+        arr: [...currentArr],
+        comparingIndex: i,
+        pivotIndex,
+        moveDirection,
+        leftPartition: [...left],
+        rightPartition: [...right],
+      });
+      if (element < pivot) left.push(element);
+      else right.push(element);
     }
 
-    // split arrays (aka multi partition step to display!)
-    //const splitArrays = [...left, currentPivotVal, ...right];
-    //const postPartitionStep = createPartition(splitArrays, currentPivotIndex);
+    // Final partition state
+    steps.push({
+      arr: [...left, pivot, ...right],
+      pivotIndex: left.length,
+      comparingIndex: undefined,
+      moveDirection: null,
+      leftPartition: [...left],
+      rightPartition: [...right],
+    });
 
-    const multiStep: MultiPartitionStep = {
-      leftPartition: createPartition(left),
-      rightPartition: createPartition(right),
-      originalRange: [
-        initialPivotIndex,
-        initialPivotIndex + currentArr.length - 1,
-      ],
-    };
-    steps.push(multiStep); // branching step added to steps
+    recursiveQuickSort(left, depth + 1);
+    recursiveQuickSort(right, depth + 1);
 
-    const sortedLeft = recursiveQuickSort(left, initialPivotIndex);
-    const sortedRight = recursiveQuickSort(
-      right,
-      initialPivotIndex + left.length + 1,
-    );
+    return [...left, pivot, ...right];
+  }
 
-    return [...sortedLeft, currentPivotVal, ...sortedRight];
-  };
-
-  // add initial state as single partition step
-  steps.push({ singlePartition: createPartition(arr) });
-
-  // start recursion
-  recursiveQuickSort(arr, 0);
-
+  recursiveQuickSort(arr);
   return steps;
 }
 
@@ -114,4 +96,71 @@ export function quickSort(arr: number[]): number[] {
   }
 
   return [...quickSort(left), pivot, ...quickSort(right)];
+}
+
+export function quickSortAnimatedTree(
+  arr: number[],
+  initialIndex = 0,
+  originalEndIndex = arr.length - 1
+): AnimatedTreeNode {
+  const steps: AnimatedStep[] = [];
+
+  if (arr.length <= 1) {
+    steps.push({
+      arr: [...arr],
+      comparingIndex: arr.length === 1 ? 0 : undefined,
+      pivotIndex: arr.length === 1 ? 0 : undefined,
+      moveDirection: null,
+      leftPartition: [],
+      rightPartition: [],
+    });
+    return { steps, left: null, right: null, originalRange: [initialIndex, originalEndIndex] };
+  }
+
+  const pivotIndex = arr.length - 1;
+  const pivot = arr[pivotIndex];
+  const left: number[] = [];
+  const right: number[] = [];
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    const element = arr[i];
+    if (element === undefined) throw new Error("Element is undefined");
+    if (pivot === undefined) throw new Error("Pivot is undefined");
+
+    const moveDirection = element < pivot ? "left" : "right";
+    steps.push({
+      arr: [...arr], // Keep original array order
+      comparingIndex: i,
+      pivotIndex,
+      moveDirection,
+      leftPartition: [...left],
+      rightPartition: [...right],
+    });
+    if (element < pivot) left.push(element);
+    else right.push(element);
+  }
+
+  // Final partition state - show where elements would go but keep original order
+  steps.push({
+    arr: [...arr], // Keep original array order
+    pivotIndex,
+    comparingIndex: undefined,
+    moveDirection: null,
+    leftPartition: [...left],
+    rightPartition: [...right],
+  });
+
+  const leftChildEndIndex = initialIndex + left.length - 1;
+  const rightChildStartIndex = initialIndex + left.length + 1;
+
+  return {
+    steps,
+    left: left.length
+      ? quickSortAnimatedTree(left, initialIndex, leftChildEndIndex)
+      : null,
+    right: right.length
+      ? quickSortAnimatedTree(right, rightChildStartIndex, originalEndIndex)
+      : null,
+    originalRange: [initialIndex, originalEndIndex],
+  };
 }

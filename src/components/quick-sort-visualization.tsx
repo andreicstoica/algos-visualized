@@ -1,53 +1,114 @@
-import type { MultiPartitionStep } from "@/lib/quick-sort";
+import type { AnimatedTreeNode } from "@/lib/quick-sort";
 import SortStep from "./sort-step";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+
+function RenderAnimatedNode({
+  node,
+  depth = 0,
+  maxDepth = 10,
+  onAllDone,
+}: {
+  node: AnimatedTreeNode;
+  depth?: number;
+  maxDepth?: number;
+  onAllDone?: () => void;
+}) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [animationComplete, setAnimationComplete] = useState(true);
+
+  useEffect(() => {
+    const currentStep = node.steps[stepIndex];
+    const hasAnimation =
+      currentStep?.comparingIndex !== undefined && currentStep?.moveDirection;
+
+    setAnimationComplete(!hasAnimation);
+
+    if (stepIndex < node.steps.length - 1) {
+      const timeout = setTimeout(() => setStepIndex(stepIndex + 1), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [stepIndex, node.steps]);
+
+  const isDone = stepIndex === node.steps.length - 1 && animationComplete;
+
+  useEffect(() => {
+    if (isDone && !node.left && !node.right) {
+      onAllDone?.();
+    }
+  }, [isDone, node.left, node.right, onAllDone]);
+
+  return (
+    <Card className="bg-background m-2 p-4">
+      <div className="flex flex-col items-center">
+        {/* Current node */}
+        <div className="mb-4">
+          <SortStep
+            step={node.steps[stepIndex]}
+            originalRange={node.originalRange}
+            onMoveComplete={() => setAnimationComplete(true)}
+          />
+        </div>
+
+        {/* Children - only show when animation is done */}
+        {isDone && depth < maxDepth && (node.left ?? node.right) && (
+          <div
+            className="relative flex items-start justify-center"
+            style={{ minWidth: "600px" }}
+          >
+            {/* Left child */}
+            {node.left && (
+              <div className="flex flex-1 justify-center">
+                <RenderAnimatedNode
+                  node={node.left}
+                  depth={depth + 1}
+                  maxDepth={maxDepth}
+                  onAllDone={onAllDone}
+                />
+              </div>
+            )}
+
+            {/* Right child */}
+            {node.right && (
+              <div className="flex flex-1 justify-center">
+                <RenderAnimatedNode
+                  node={node.right}
+                  depth={depth + 1}
+                  maxDepth={maxDepth}
+                  onAllDone={onAllDone}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 interface QuickSortVisualizationProps {
-  steps: MultiPartitionStep[];
-  currentStepIndex: number;
+  tree: AnimatedTreeNode;
 }
 
 export default function QuickSortVisualization({
-  steps,
-  currentStepIndex,
-}: QuickSortVisualizationProps) {
-  const currentLayer = steps[currentStepIndex];
-
-  if (!currentLayer) {
-    return <div>No vis data?</div>;
+  tree,
+  maxDepth = 0,
+  onAnimationComplete,
+}: QuickSortVisualizationProps & {
+  maxDepth?: number;
+  onAnimationComplete?: () => void;
+}) {
+  if (!tree) {
+    return <div>Fill the form with a list!</div>;
   }
-
-  const { singlePartition, leftPartition, rightPartition, originalRange } =
-    currentLayer;
-
-  const rowStyle = "flex w-40 flex-col items-center gap-2";
   return (
-    <div className="flex w-full flex-row flex-wrap items-start justify-center gap-4 p-4">
-      {singlePartition && (
-        <div className={rowStyle}>
-          <h4>Current Array State</h4>
-          <SortStep step={singlePartition} />
-        </div>
-      )}
-
-      {leftPartition && (
-        <div className={rowStyle}>
-          <h4>Left</h4>
-          <SortStep step={leftPartition} />
-        </div>
-      )}
-
-      {rightPartition && (
-        <div className={rowStyle}>
-          <h4>Right</h4>
-          <SortStep step={rightPartition} />
-        </div>
-      )}
-
-      {originalRange && (
-        <div className="mt-2 ml-4 text-sm text-gray-600">
-          Original Range: [{originalRange[0]}, {originalRange[1]}]
-        </div>
-      )}
+    <div className="relative flex w-full flex-col items-center">
+      <RenderAnimatedNode
+        node={tree}
+        depth={0}
+        maxDepth={maxDepth}
+        onAllDone={onAnimationComplete}
+      />
     </div>
   );
 }

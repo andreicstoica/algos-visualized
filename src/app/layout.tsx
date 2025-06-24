@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 import { type Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 
@@ -19,8 +21,17 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={plex.className}>
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning className={plex.className}>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
