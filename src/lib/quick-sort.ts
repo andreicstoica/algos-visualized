@@ -12,97 +12,70 @@ export interface SortStepNode {
   right?: SortStepNode | null;
 }
 
-// helper function to save 'steps' in quick-sort algo
-function createPartition(
-  arr: number[],
-  pivotIndex?: number,
-  comparingIndeces?: [number, number],
-): PartitionData {
-  return {
-    arr: [...arr], // copy the array
-    pivotIndex,
-    comparingIndeces,
-  };
+export interface AnimatedStep {
+  arr: number[];
+  comparingIndex?: number;
+  pivotIndex?: number;
+  moveDirection?: "left" | "right" | null; // null for no move
+  leftPartition?: number[];
+  rightPartition?: number[];
 }
 
-export function quickSortAnimated(arr: number[]): SortStepNode[] {
-  const rootNodes: SortStepNode[] = []; // root nodes for top level steps
+export interface AnimatedTreeNode {
+  steps: AnimatedStep[];
+  left?: AnimatedTreeNode | null;
+  right?: AnimatedTreeNode | null;
+  originalRange?: [number, number];
+}
 
-  const createLeafNode = (
-    arr: number[],
-    initialIndex: number,
-    originalEndIndex: number,
-  ): SortStepNode => {
-    return {
-      type: "BASE_CASE",
-      partitionData: createPartition(arr, arr.length === 1 ? 0 : undefined),
-      originalRange: [initialIndex, originalEndIndex], // range for leaf
-      left: null,
-      right: null,
-    };
-  };
+export function quickSortAnimated(arr: number[]): AnimatedStep[] {
+  const steps: AnimatedStep[] = [];
 
-  const recursiveQuickSort = (
-    currentArr: number[],
-    initialIndex: number,
-    originalEndIndex: number,
-  ): SortStepNode => {
-    // base case: arr is zero or one element
-    if (currentArr.length <= 1) {
-      return createLeafNode(currentArr, initialIndex, originalEndIndex);
-    }
+  function recursiveQuickSort(currentArr: number[], depth = 0): number[] {
+    if (currentArr.length <= 1) return currentArr;
 
-    // otherwise, let's pivot around val at index (end of array for now)
-    const pivotVal = currentArr[currentArr.length - 1];
-    const currentPivotIndex = currentArr.length - 1; // last index is pivot
+    const pivotIndex = currentArr.length - 1;
+    const pivot = currentArr[pivotIndex];
+    const left: number[] = [];
+    const right: number[] = [];
 
-    if (pivotVal === undefined)
-      throw new Error("Pivot undefined but should be (recursiveQuickSort)"); // thanks typescript
+    if (pivot === undefined) throw new Error("Pivot is undefined"); // thanks typescript
 
-    const leftArr: number[] = [];
-    const rightArr: number[] = [];
-
-    /* Partition Logic */
-    // iterate over the array, skipping the last element
-    // (will be added after in between left/right arrs)
     for (let i = 0; i < currentArr.length - 1; i++) {
       const element = currentArr[i];
-      if (element !== undefined) {
-        if (element < pivotVal) leftArr.push(element);
-        else rightArr.push(element);
-      }
+      if (element === undefined) throw new Error("Element is undefined"); // thanks typescript
+
+      const moveDirection = element < pivot ? "left" : "right";
+      steps.push({
+        arr: [...currentArr],
+        comparingIndex: i,
+        pivotIndex,
+        moveDirection,
+        leftPartition: [...left],
+        rightPartition: [...right],
+      });
+      if (element < pivot) left.push(element);
+      else right.push(element);
     }
 
-    const currentNode: SortStepNode = {
-      type: "PARTITION",
-      partitionData: createPartition(currentArr, currentPivotIndex),
-      originalRange: [initialIndex, originalEndIndex],
-      left: null,
-      right: null,
-    };
+    // Final partition state
+    steps.push({
+      arr: [...left, pivot, ...right],
+      pivotIndex: left.length,
+      comparingIndex: undefined,
+      moveDirection: null,
+      leftPartition: [...left],
+      rightPartition: [...right],
+    });
 
-    const leftChildEndIndex = initialIndex + leftArr.length - 1;
-    currentNode.left = recursiveQuickSort(
-      leftArr,
-      initialIndex,
-      leftChildEndIndex,
-    );
+    recursiveQuickSort(left, depth + 1);
+    recursiveQuickSort(right, depth + 1);
 
-    const rightChildStartIndex = initialIndex + leftArr.length + 1;
-    currentNode.right = recursiveQuickSort(
-      rightArr,
-      rightChildStartIndex,
-      originalEndIndex,
-    );
+    return [...left, pivot, ...right];
+  }
 
-    return currentNode;
-  };
-
-  // start with initial array in top node
-  const rootNode = recursiveQuickSort(arr, 0, arr.length - 1);
-  rootNodes.push(rootNode);
-
-  return rootNodes;
+  recursiveQuickSort(arr);
+  return steps;
 }
 
 export function quickSort(arr: number[]): number[] {
@@ -123,4 +96,71 @@ export function quickSort(arr: number[]): number[] {
   }
 
   return [...quickSort(left), pivot, ...quickSort(right)];
+}
+
+export function quickSortAnimatedTree(
+  arr: number[],
+  initialIndex = 0,
+  originalEndIndex = arr.length - 1
+): AnimatedTreeNode {
+  const steps: AnimatedStep[] = [];
+
+  if (arr.length <= 1) {
+    steps.push({
+      arr: [...arr],
+      comparingIndex: arr.length === 1 ? 0 : undefined,
+      pivotIndex: arr.length === 1 ? 0 : undefined,
+      moveDirection: null,
+      leftPartition: [],
+      rightPartition: [],
+    });
+    return { steps, left: null, right: null, originalRange: [initialIndex, originalEndIndex] };
+  }
+
+  const pivotIndex = arr.length - 1;
+  const pivot = arr[pivotIndex];
+  const left: number[] = [];
+  const right: number[] = [];
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    const element = arr[i];
+    if (element === undefined) throw new Error("Element is undefined");
+    if (pivot === undefined) throw new Error("Pivot is undefined");
+
+    const moveDirection = element < pivot ? "left" : "right";
+    steps.push({
+      arr: [...arr], // Keep original array order
+      comparingIndex: i,
+      pivotIndex,
+      moveDirection,
+      leftPartition: [...left],
+      rightPartition: [...right],
+    });
+    if (element < pivot) left.push(element);
+    else right.push(element);
+  }
+
+  // Final partition state - show where elements would go but keep original order
+  steps.push({
+    arr: [...arr], // Keep original array order
+    pivotIndex,
+    comparingIndex: undefined,
+    moveDirection: null,
+    leftPartition: [...left],
+    rightPartition: [...right],
+  });
+
+  const leftChildEndIndex = initialIndex + left.length - 1;
+  const rightChildStartIndex = initialIndex + left.length + 1;
+
+  return {
+    steps,
+    left: left.length
+      ? quickSortAnimatedTree(left, initialIndex, leftChildEndIndex)
+      : null,
+    right: right.length
+      ? quickSortAnimatedTree(right, rightChildStartIndex, originalEndIndex)
+      : null,
+    originalRange: [initialIndex, originalEndIndex],
+  };
 }
