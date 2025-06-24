@@ -3,6 +3,7 @@ import SortStep from "./sort-step";
 
 // Recursive node display helper
 function RenderNode({
+  // lily loves you
   node,
   depth,
 }: {
@@ -16,30 +17,31 @@ function RenderNode({
   const { type, partitionData, left, right, originalRange } = node;
 
   const indentClass = depth > 0 ? `ml-${depth * 6}` : "";
-  const hasChildren = left !== null || right !== null;
+  const hasChildren = type === "PARTITION" && (left !== null || right !== null);
 
   return (
     <div className={`mb-8 flex w-full flex-col items-start ${indentClass}`}>
       <div className="flex w-full flex-col items-center gap-4">
         <SortStep step={partitionData} />
-        {originalRange && (
+        {originalRange && partitionData.arr[0] !== undefined && (
           <div className="text-xs text-gray-600">
             Range: [{originalRange[0]}, {originalRange[1]}]
           </div>
         )}
 
         {/* display labels and og range */}
-        {type === "PARTITION" && (
+        {type === "PARTITION" && hasChildren && (
           <>
             <div className="flex w-24 flex-row text-xs text-gray-600">
-              {left && <span className="mr-2">Left</span>}
+              {left && <span className="mx-3">Left</span>}
               {right && <span>Right</span>}
             </div>
           </>
         )}
       </div>
+
       {/* recursively render children */}
-      {hasChildren && ( // Only render children if this is a PARTITION node with children
+      {type === "PARTITION" && hasChildren && (
         <div className="mt-4 flex w-full flex-row gap-4">
           {left && <RenderNode node={left} depth={depth + 1} />}
           {right && <RenderNode node={right} depth={depth + 1} />}
@@ -52,7 +54,7 @@ function RenderNode({
 interface QuickSortVisualizationProps {
   steps: SortStepNode[];
 }
-
+``;
 export default function QuickSortVisualization({
   steps,
 }: QuickSortVisualizationProps) {

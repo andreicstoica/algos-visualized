@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,6 +26,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import clsx from "clsx";
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+
 const formSchema = z.object({
   numbers: z.string().min(1, {
     message: "Please enter some numbers.",
@@ -36,6 +48,7 @@ export default function QuickSortPage() {
   const [numberArr, setNumberArr] = useState<number[]>([]);
   const [steps, setSteps] = useState<SortStepNode[]>([]);
   const [showResult, setShowResult] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(true);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -45,6 +58,7 @@ export default function QuickSortPage() {
   type FormData = z.infer<typeof formSchema>;
 
   const onSubmit = (data: FormData) => {
+    setShowModal(false);
     setShowResult(true);
     const parsedNumbers = data.numbers
       .split(",")
@@ -54,6 +68,9 @@ export default function QuickSortPage() {
     if (parsedNumbers.length >= 2) {
       setNumberArr(parsedNumbers);
       setSteps(quickSortAnimated(parsedNumbers));
+    } else {
+      setNumberArr([]);
+      setSteps([]);
     }
   };
 
@@ -62,39 +79,62 @@ export default function QuickSortPage() {
       <h1>Quick Sort Visualization</h1>
       <p>Visualize the quick sort algorithm step by step.</p>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="numbers"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>List some numbers</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="A list of numbers split by commas"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit">Submit</Button>
-        </form>
-      </Form>
+      {/* Modal for number input */}
+      <AlertDialog open={showModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Visualizing Quick Sort</AlertDialogTitle>
+            <AlertDialogDescription>
+              List some numbers separated by commas. Click &quot;Continue&quot;
+              to see the step-by-step visualization.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="numbers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>List some numbers</FormLabel>
+                    <FormControl>
+                      <Input placeholder="1,5,2,3,4" {...field} />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      1,8,3,7,4,6,5,3,6 - if you&apos;re lazy 😉
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button type="submit">Continue</Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </form>
+          </Form>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <div className="mt-2 flex flex-col gap-2">
-        {steps.map((step, i) => (
-          <QuickSortVisualization key={i} steps={steps} />
-        ))}
-      </div>
+      {/* Visualization and result only after modal is closed and valid numbers are present */}
+      {showResult && steps.length > 0 && (
+        <div className="mt-2 flex flex-col gap-2">
+          <QuickSortVisualization steps={steps} />
+        </div>
+      )}
 
       {/* sorted list result card */}
       <Card
         className={clsx(
-          showResult === true ? "visible" : "hidden",
-          "mx-auto w-full max-w-md items-center",
+          showResult && numberArr.length > 0 ? "visible" : "hidden",
+          "mx-auto w-auto items-center",
         )}
       >
         <CardHeader className="w-full justify-center">

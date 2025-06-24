@@ -35,7 +35,7 @@ export function quickSortAnimated(arr: number[]): SortStepNode[] {
   ): SortStepNode => {
     return {
       type: "BASE_CASE",
-      partitionData: createPartition(arr),
+      partitionData: createPartition(arr, arr.length === 1 ? 0 : undefined),
       originalRange: [initialIndex, originalEndIndex], // range for leaf
       left: null,
       right: null,

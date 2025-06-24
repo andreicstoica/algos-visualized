@@ -21,7 +21,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={plex.className}>
+    <html lang="en" suppressHydrationWarning className={plex.className}>
       <body>
         <ThemeProvider
           attribute="class"
