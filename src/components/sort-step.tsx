@@ -60,7 +60,7 @@ export default function SortStep({
         {isMoving && comparingIndex !== undefined && (
           <motion.div
             key={`moving-${comparingIndex}`}
-            initial={{ y: 30, x: 0, opacity: 0.75 }}
+            initial={{ y: 30, x: 0, opacity: 0.8 }}
             animate={{
               // 1. Down, 2. Out, 3. Down again
               y: [20, 70, 95],
