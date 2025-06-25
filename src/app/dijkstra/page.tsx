@@ -48,24 +48,33 @@ export default function DijkstraPage() {
       const offsetY = (canvasHeight - initialH * scale) / 1.5;
 
       context.save();
+      // set context vals
       context.translate(offsetX, offsetY);
       context.scale(scale, scale);
 
       // draw nodes
-      context.fillStyle = "red";
       tree.forEach((node) => {
-        context.fillRect(node.x, node.y, 10, 10);
+        // black object shape
+        context.fillStyle = "black";
+        context.fillRect(node.x, node.y, 20, 20);
+        // white text inside
+        context.font = "16px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        context.fillStyle = "white";
+        context.fillText(node.id.toString(), node.x + 20 / 2, node.y + 20 / 2);
       });
 
-      // draw branches
-      context.strokeStyle = "gray";
+      // draw edge
+      context.strokeStyle = "#6495ED";
       context.setLineDash([4, 6]); // dotted line
       context.globalCompositeOperation = "destination-over"; // draw behind nodes
       tree.forEach((node) => {
-        node.neighbors.forEach((branch) => {
+        node.neighbors.forEach((edge) => {
           context.beginPath();
-          context.moveTo(branch.node1.x, branch.node1.y);
-          context.lineTo(branch.node2.x, branch.node2.y);
+          context.moveTo(edge.node1.x + 20 / 2, edge.node1.y + 20 / 2);
+          context.lineTo(edge.node2.x + 20 / 2, edge.node2.y + 20 / 2);
           context.stroke();
         });
       });
