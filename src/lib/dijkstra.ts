@@ -1,3 +1,6 @@
+import MinHeap from "heap-js";
+// import * as d3 from "d3";
+
 export type Edge = {
   node1: Node;
   node2: Node;
@@ -12,7 +15,12 @@ export type Node = {
   y: number;
 };
 
-import MinHeap from "heap-js";
+// clean graph helper (no overlapping nodes or crossing edges)
+function distance(a: Node, x: number, y: number): number {
+  const dx = a.x - x;
+  const dy = a.y - y;
+  return Math.hypot(dx, dy);
+}
 
 // generate a random tree with random branches
 export function generateTree(
@@ -24,35 +32,44 @@ export function generateTree(
   if (numNodes <= 0) return [];
 
   const nodes: Node[] = [];
+  const MIN_DIST = 200; // nodes cannot be any closer than this pixel distance
 
   // initialize node array with random coords for viz
   for (let i = 0; i < numNodes; i++) {
+    let x: number, y: number, ok: boolean;
+    do {
+      console.log("hi");
+      x = Math.random() * pxW;
+      y = Math.random() * pxH;
+      ok = nodes.every((n) => distance(n, x, y) >= MIN_DIST);
+    } while (!ok);
+
     nodes.push({
       id: i,
       visited: false,
       neighbors: [],
-      x: Math.random() * pxW,
-      y: Math.random() * pxH,
+      x,
+      y,
     });
   }
 
-  // randomize branches
+  // add randomized branches that don't overlap
   for (let i = 1; i < numNodes; i++) {
     const node2 = nodes[i]; // current node
 
     const randomIndex = Math.floor(Math.random() * i); // index will be between 0 and i-1
     const node1 = nodes[randomIndex];
 
-    // typescript exist check
+    // thanks typescript
     if (!node1 || !node2) {
       throw new Error("Internal error: Node not found during branch creation.");
     }
 
-    const weight = Math.floor(Math.random() * maxWeight) + 1; // Ensure weight is at least 1 for Dijkstra
+    const weight = Math.floor(Math.random() * maxWeight) + 1; // weight is at least 1
 
     const branch: Edge = { node1, node2, weight };
 
-    // Add the branch to both nodes' neighbor lists (undirected graph)
+    // add the branch to both nodes' neighbor lists (undirected graph)
     node1.neighbors.push(branch);
     node2.neighbors.push(branch);
   }
@@ -60,12 +77,25 @@ export function generateTree(
   return nodes;
 }
 
+export type DijkstraStep = {
+  distances: number[];
+  visited: boolean[];
+  currentNode: number;
+};
+
+// side effect list for now
+
 // dijkstra's algorithm
-const dijkstra = (tree: Node[]) => {
+export const dijkstra = (tree: Node[]): DijkstraStep[] => {
+  const dijkstraSteps: DijkstraStep[] = [];
+
   // thanks typescript
   if (!tree || tree.length === 0) {
     throw new Error("bad tree to dijkstra over");
   }
+  // these two arrs are for visualizing
+  const distancesArr = new Array(tree.length).fill(Infinity);
+  const visitedArr = new Array(tree.length).fill(false);
 
   const distances = new Map<number, number>(); // <NodeId, Distance>
   const previousNodes = new Map<number, Node | null>(); // <NodeId, PreviousNodeInShortestPath>
@@ -73,7 +103,9 @@ const dijkstra = (tree: Node[]) => {
     (a, b) => a.distance - b.distance,
   ); // two nodes to compare passed to heap operation
 
+  // set origin as first node, update visualization distancesArr
   const origin: Node = tree[0]!;
+  distancesArr[origin.id] = 0;
 
   // initialize node distances
   for (const node of tree) {
@@ -86,8 +118,25 @@ const dijkstra = (tree: Node[]) => {
     previousNodes.set(node.id, null); // no prev nodes to start
   }
 
+  dijkstraSteps.push({
+    distances: Array.from(
+      { length: tree.length },
+      (_, i) => distances.get(i) ?? Infinity,
+    ),
+    visited: visitedArr.slice() as boolean[],
+    currentNode: origin.id,
+  });
+
   while (minHeap.size() > 0) {
     const { node: currentNode, distance: currentDistance } = minHeap.pop()!;
+
+    // store initial state for visualization
+    visitedArr[currentNode.id] = true;
+    dijkstraSteps.push({
+      distances: distancesArr.slice() as number[],
+      visited: visitedArr.slice() as boolean[],
+      currentNode: currentNode.id,
+    });
 
     // if we've found a shorter distance, pass
     if (currentDistance > (distances.get(currentNode.id) ?? Infinity)) {
@@ -107,12 +156,17 @@ const dijkstra = (tree: Node[]) => {
         distances.set(currentNode.id, newDistance);
         previousNodes.set(neighborNode.id, currentNode);
         minHeap.push({ node: neighborNode, distance: newDistance });
+
+        // new state snapshot
+        distancesArr[neighborNode.id] = newDistance;
+        dijkstraSteps.push({
+          distances: distancesArr.slice() as number[],
+          visited: visitedArr.slice() as boolean[],
+          currentNode: currentNode.id,
+        });
       }
     }
   }
-  console.log("Shortest Distances:", distances);
-  return { distances, previousNodes };
-};
 
-const tree = generateTree(9, 5, 0, 0);
-dijkstra(tree);
+  return dijkstraSteps;
+};
