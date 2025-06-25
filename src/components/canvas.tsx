@@ -17,8 +17,6 @@ const Canvas = ({ width, height, draw }: CanvasProps) => {
     const dpr = window.devicePixelRatio || 1; // dpr for high res canvas B)
     canvas.width = width * dpr;
     canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
 
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -30,7 +28,13 @@ const Canvas = ({ width, height, draw }: CanvasProps) => {
     draw(context);
   }, [draw, width, height]);
 
-  return <canvas ref={canvasRef} style={{ display: "block" }} />;
+  return (
+    <canvas
+      className={"box-content block h-full w-full"}
+      ref={canvasRef}
+      style={{ display: "block" }}
+    />
+  );
 };
 
 export default Canvas;
