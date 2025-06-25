@@ -14,7 +14,7 @@ export default function Nav() {
         <Link
           className={clsx(
             "flex h-full items-center justify-center uppercase",
-            path === "/" || path === "/quick-sort"
+            path === "/" || path === "/quick-sort" || path === "/dijkstra"
               ? "bg-black text-white"
               : "bg-main text-black",
           )}

@@ -50,8 +50,11 @@ export default function HomePage() {
           revolutionized computer science. Coming soon.
         </CardDescription>
         <CardAction>
-          <Button disabled className="px-5 py-3">
-            Coming Soon
+          <Button
+            onClick={() => router.push("/dijkstra")}
+            className="px-5 py-3"
+          >
+            Visit
           </Button>
         </CardAction>
       </Card>

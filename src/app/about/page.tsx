@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -34,16 +33,20 @@ export default function AboutPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Part of the{" "}
-            <Link className="underline" href="https://fractalbootcamp.com/">
-              Fractal Bootcamp <ExternalLink className="mb-1 inline size-4" />
-            </Link>{" "}
-            curriculum, I&apos;ve created visualizations for core algorithms.
-            They showcases my understanding each algorithm.
+            I&apos;ve created interactive visualizations for fundamental
+            algorithms that demonstrate my understanding of each
+            algorithm&apos;s mechanics and implementation.
           </p>
           <p>
             Each algorithm is presented with step-by-step animations, allowing
             users to see exactly how the algorithm works under the hood.
+          </p>
+          <p>
+            This was created aspart of the{" "}
+            <Link className="underline" href="https://fractalbootcamp.com/">
+              Fractal Bootcamp <ExternalLink className="mb-1 inline size-4" />
+            </Link>{" "}
+            curriculum.
           </p>
         </CardContent>
       </Card>
