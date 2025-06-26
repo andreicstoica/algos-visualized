@@ -27,15 +27,17 @@ export default function Chart({
   }));
 
   return (
-    <ChartContainer config={chartConfig} className="mt-6 h-40 w-full">
-      <BarChart accessibilityLayer data={data} margin={{ left: -40, right: 4 }}>
-        <CartesianGrid vertical={true} strokeDasharray="3 3" />
+    <ChartContainer config={chartConfig} className="w-full">
+      <BarChart
+        accessibilityLayer
+        data={data}
+        margin={{ left: -40, right: 1, top: 0, bottom: 0 }}
+      >
+        <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <YAxis
           tickLine={false}
           tickMargin={1}
-          tick={{
-            fontSize: 10,
-          }}
+          tick={{ fontSize: 10 }}
           domain={[0, maxDistance ?? 10]}
           ticks={Array.from({ length: maxDistance ?? 10 }, (_, i) => i)}
         />
@@ -69,7 +71,7 @@ export default function Chart({
             return null;
           }}
         />
-        <Bar dataKey="distance" radius={1} fill="var(--color-main)" />
+        <Bar dataKey="distance" radius={3} fill="var(--color-main)" />
       </BarChart>
     </ChartContainer>
   );
