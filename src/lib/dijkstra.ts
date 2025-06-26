@@ -15,7 +15,7 @@ export type Node = {
   y: number;
 };
 
-// clean graph helper (no overlapping nodes or crossing edges)
+// clean graph helper (no overlapping nodes)
 function distance(a: Node, x: number, y: number): number {
   const dx = a.x - x;
   const dy = a.y - y;
@@ -77,10 +77,13 @@ export function generateTree(
   return nodes;
 }
 
+// object for visualizing dijkstra's algorithm
 export type DijkstraStep = {
   distances: number[];
   visited: boolean[];
   currentNode: number;
+  path?: number[];
+  activeEdge?: Edge;
 };
 
 // side effect list for now
@@ -130,6 +133,12 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
   while (minHeap.size() > 0) {
     const { node: currentNode, distance: currentDistance } = minHeap.pop()!;
 
+    // update distancesArr to match the current
+    // state of distances map (for graph visual)
+    for (let i = 0; i < tree.length; i++) {
+      distancesArr[i] = distances.get(i) ?? Infinity;
+    }
+
     // store initial state for visualization
     visitedArr[currentNode.id] = true;
     dijkstraSteps.push({
@@ -152,17 +161,26 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
       const currentNeighborDistance =
         distances.get(neighborNode.id) ?? Infinity;
 
+      // snapshot the active edge for visualization
+      dijkstraSteps.push({
+        distances: distancesArr.slice() as number[],
+        visited: visitedArr.slice() as boolean[],
+        currentNode: currentNode.id,
+        activeEdge: edge,
+      });
+
       if (newDistance < currentNeighborDistance) {
-        distances.set(currentNode.id, newDistance);
+        distances.set(neighborNode.id, newDistance);
         previousNodes.set(neighborNode.id, currentNode);
         minHeap.push({ node: neighborNode, distance: newDistance });
 
-        // new state snapshot
+        // update distancesArr when we find a shorter path
         distancesArr[neighborNode.id] = newDistance;
         dijkstraSteps.push({
           distances: distancesArr.slice() as number[],
           visited: visitedArr.slice() as boolean[],
           currentNode: currentNode.id,
+          activeEdge: edge,
         });
       }
     }
