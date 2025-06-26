@@ -1,5 +1,9 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+} from "@/components/ui/chart";
 
 const chartConfig = {
   node: {
@@ -44,7 +48,27 @@ export default function Chart({
           tickFormatter={(value: string) => value}
           interval={0}
         />
-
+        <ChartTooltip
+          cursor={false}
+          content={({ payload }: { payload?: Array<{ payload: unknown }> }) => {
+            const data = payload?.[0]?.payload as
+              | { node: string; originalDistance: number }
+              | undefined;
+            if (data) {
+              return (
+                <div className="bg-background rounded border p-2">
+                  <p>
+                    {data.node}:{" "}
+                    {data.originalDistance === Infinity
+                      ? "∞"
+                      : data.originalDistance}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
         <Bar dataKey="distance" radius={3} fill="var(--color-main)" />
       </BarChart>
     </ChartContainer>
