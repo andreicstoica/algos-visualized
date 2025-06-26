@@ -26,6 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+import { House } from "lucide-react";
+import { ArrowUturnLeftIcon } from "@heroicons/react/20/solid";
 
 import { useForm } from "react-hook-form";
 import { useState } from "react";
@@ -226,7 +228,12 @@ export default function QuickSortPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                   <div>{quickSort(numberArr).join(", ")}</div>
-                  <Button onClick={() => router.push("/")}>Back</Button>
+                  <Button
+                    onClick={() => router.push("/")}
+                    className="flex items-center gap-2"
+                  >
+                    <House /> <ArrowUturnLeftIcon />
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
