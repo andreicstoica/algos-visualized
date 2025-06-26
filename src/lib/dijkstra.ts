@@ -15,7 +15,7 @@ export type Node = {
   y: number;
 };
 
-// clean graph helper (no overlapping nodes or crossing edges)
+// clean graph helper (no overlapping nodes)
 function distance(a: Node, x: number, y: number): number {
   const dx = a.x - x;
   const dy = a.y - y;
@@ -133,6 +133,12 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
   while (minHeap.size() > 0) {
     const { node: currentNode, distance: currentDistance } = minHeap.pop()!;
 
+    // update distancesArr to match the current
+    // state of distances map (for graph visual)
+    for (let i = 0; i < tree.length; i++) {
+      distancesArr[i] = distances.get(i) ?? Infinity;
+    }
+
     // store initial state for visualization
     visitedArr[currentNode.id] = true;
     dijkstraSteps.push({
@@ -168,7 +174,7 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
         previousNodes.set(neighborNode.id, currentNode);
         minHeap.push({ node: neighborNode, distance: newDistance });
 
-        // new state snapshot
+        // update distancesArr when we find a shorter path
         distancesArr[neighborNode.id] = newDistance;
         dijkstraSteps.push({
           distances: distancesArr.slice() as number[],
