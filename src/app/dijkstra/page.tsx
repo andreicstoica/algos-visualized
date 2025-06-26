@@ -231,11 +231,11 @@ export default function DijkstraPage() {
 
   return (
     <div className="mx-2 my-20">
-      <div className="grid grid-cols-[3fr_1.5fr] grid-rows-1">
+      <div className="grid grid-cols-[1fr_auto] grid-rows-1 gap-4">
         {canvasWidth && canvasHeight && (
           <Canvas width={canvasWidth} height={canvasHeight} draw={treeDraw} />
         )}
-        <Card className="bg-secondary-background ml-auto w-full max-w-sm justify-around p-4">
+        <Card className="bg-secondary-background mr-12 w-100 justify-around p-4">
           <CardTitle className="text-center text-lg font-black">
             Dijkstra&apos;s Algorithm
           </CardTitle>
