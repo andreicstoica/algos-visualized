@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { House } from "lucide-react";
+import { ArrowUturnLeftIcon } from "@heroicons/react/20/solid";
 
 // CONSTANTS
 const BOX_SIZE = 30; // node rectangle square
-const PADDING = 25;
+const PADDING = 30;
 
 export default function DijkstraPage() {
   const router = useRouter();
@@ -47,7 +49,7 @@ export default function DijkstraPage() {
     initialDims.current = { w: innerW, h: innerH };
 
     // Generate once into a local var
-    const newTree = generateTree(9, 5, w - 2 * PADDING, h - 2 * PADDING);
+    const newTree = generateTree(5, 4, w - 2 * PADDING, h - 3 * PADDING);
     setTree(newTree);
 
     // Derive steps from that same local tree
@@ -82,7 +84,7 @@ export default function DijkstraPage() {
     if (tree.length && initialDims.current) {
       const { w: innerW, h: innerH } = initialDims.current;
       const drawableW = canvasWidth - 2 * PADDING;
-      const drawableH = canvasHeight - 2 * PADDING;
+      const drawableH = canvasHeight - 3 * PADDING;
       const scale = Math.min(drawableW / innerW, drawableH / innerH);
       const offsetX = PADDING + (drawableW - innerW * scale) / 2;
       const offsetY = PADDING + (drawableH - innerH * scale) / 2;
@@ -93,7 +95,11 @@ export default function DijkstraPage() {
       // draw nodes
       tree.forEach((node) => {
         // black object shape
-        context.fillStyle = "black";
+        if (node.id === currentStep.currentNode) {
+          context.fillStyle = "green";
+        } else {
+          context.fillStyle = "black";
+        }
         context.fillRect(node.x, node.y, BOX_SIZE, BOX_SIZE);
         // white text inside
         context.font = "bold 20px sans-serif";
@@ -108,11 +114,24 @@ export default function DijkstraPage() {
       });
 
       // draw edge
-      context.strokeStyle = "#6495ED";
-      context.setLineDash([4, 6]); // dotted line
       context.globalCompositeOperation = "destination-over"; // draw behind nodes
       tree.forEach((node) => {
         node.neighbors.forEach((edge) => {
+          // conditionally draw the active edge
+          if (
+            edge.node1.id === currentStep.activeEdge?.node1.id &&
+            edge.node2.id === currentStep.activeEdge?.node2.id
+          ) {
+            context.strokeStyle = "#c41f1f";
+            context.lineWidth = 2.5;
+            context.setLineDash([]); // solid line
+          } else {
+            context.lineWidth = 1;
+            context.strokeStyle = "#6495ED";
+            context.setLineDash([4, 6]); // dotted line
+          }
+          context.save();
+
           // dotted edges
           context.beginPath();
           context.moveTo(
@@ -125,23 +144,25 @@ export default function DijkstraPage() {
           );
           context.stroke();
           // text for weight
+          context.globalCompositeOperation = "source-over"; // draw weight on top of edge line
           context.font = "bold 18px sans-serif";
           context.textAlign = "center";
-          context.textBaseline = "middle";
+          context.textBaseline = "top";
           context.fillStyle = "#6495ED";
           context.fillText(
             edge.weight.toString(),
             (edge.node1.x + edge.node2.x) / 2,
             (edge.node1.y + edge.node2.y) / 2,
           );
+
+          context.restore();
         });
       });
 
       context.restore();
     }
   };
-
-  // END DRAW
+  /// END DRAW ///
 
   // handlers for next/back
   const nextFrame = () => {
@@ -162,23 +183,24 @@ export default function DijkstraPage() {
   // make action description for card
   let actionText = "";
   if (!previous) {
-    actionText = "Initialization: set origin distance to 0.";
+    actionText =
+      "Let's get started 🚀 Set origin distance to 0, and all others to infinity.";
+  } else if (frameIdx === steps.length - 1) {
+    actionText = "We now know all shortest distances to the origin!";
   } else {
     const curId = currentStep.currentNode;
     // did we just finalize a node?
     if (!previous.visited[curId] && currentStep.visited[curId]) {
-      actionText = `Finalized node ${curId} with distance ${
-        currentStep.distances[curId]
-      }.`;
+      actionText = `Finalized Node ${curId} with distance ${currentStep.distances[curId]}.`;
     } else {
       // find which distance changed
       const changed = currentStep.distances.findIndex(
         (d, i) => d !== previous.distances[i],
       );
       if (changed !== -1) {
-        actionText = `Relaxed edge → updated node ${changed} from ${
-          previous.distances[changed]
-        } to ${currentStep.distances[changed]}.`;
+        actionText = `It's shorter 🎉 Let's relax the edge → distance to Node ${changed} is ${currentStep.distances[changed]} (was ${previous.distances[changed]}).`;
+      } else {
+        actionText = "Checking if distance is shorter...";
       }
     }
   }
@@ -189,7 +211,7 @@ export default function DijkstraPage() {
         {canvasWidth && canvasHeight && (
           <Canvas width={canvasWidth} height={canvasHeight} draw={treeDraw} />
         )}
-        <Card className="bg-secondary-background ml-auto w-full max-w-sm p-4">
+        <Card className="bg-secondary-background ml-auto w-full max-w-sm justify-between p-4">
           <CardTitle className="text-center text-lg font-black">
             Dijkstra&apos;s Algorithm
           </CardTitle>
@@ -198,7 +220,9 @@ export default function DijkstraPage() {
               Step {frameIdx + 1} / {steps.length}
             </CardTitle>
             <CardDescription>
-              <p className="mb-2 font-medium">{actionText}</p>
+              <p className="mb-2 font-medium text-pretty whitespace-pre-line">
+                {actionText}
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 {currentStep.distances.map((d, i) => (
                   <Badge
@@ -215,13 +239,22 @@ export default function DijkstraPage() {
               </div>
             </CardDescription>
             <CardAction className="flex w-full gap-2">
-              <Button
-                onClick={prevFrame}
-                disabled={frameIdx === 0}
-                className="w-full flex-1"
-              >
-                Back
-              </Button>
+              {frameIdx === steps.length - 1 ? (
+                <Button
+                  onClick={() => setFrameIdx(0)}
+                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                >
+                  Restart
+                </Button>
+              ) : (
+                <Button
+                  onClick={prevFrame}
+                  disabled={frameIdx === 0}
+                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                >
+                  Back
+                </Button>
+              )}
               <Button
                 onClick={nextFrame}
                 disabled={frameIdx === steps.length - 1}
@@ -233,7 +266,8 @@ export default function DijkstraPage() {
           </Card>
           <CardAction className="w-full">
             <Button onClick={() => router.push("/")} className="w-full flex-1">
-              Home
+              <House />
+              <ArrowUturnLeftIcon />
             </Button>
           </CardAction>
         </Card>

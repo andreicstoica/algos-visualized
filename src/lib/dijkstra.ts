@@ -77,10 +77,13 @@ export function generateTree(
   return nodes;
 }
 
+// object for visualizing dijkstra's algorithm
 export type DijkstraStep = {
   distances: number[];
   visited: boolean[];
   currentNode: number;
+  path?: number[];
+  activeEdge?: Edge;
 };
 
 // side effect list for now
@@ -152,8 +155,16 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
       const currentNeighborDistance =
         distances.get(neighborNode.id) ?? Infinity;
 
+      // snapshot the active edge for visualization
+      dijkstraSteps.push({
+        distances: distancesArr.slice() as number[],
+        visited: visitedArr.slice() as boolean[],
+        currentNode: currentNode.id,
+        activeEdge: edge,
+      });
+
       if (newDistance < currentNeighborDistance) {
-        distances.set(currentNode.id, newDistance);
+        distances.set(neighborNode.id, newDistance);
         previousNodes.set(neighborNode.id, currentNode);
         minHeap.push({ node: neighborNode, distance: newDistance });
 
@@ -163,6 +174,7 @@ export const dijkstra = (tree: Node[]): DijkstraStep[] => {
           distances: distancesArr.slice() as number[],
           visited: visitedArr.slice() as boolean[],
           currentNode: currentNode.id,
+          activeEdge: edge,
         });
       }
     }
