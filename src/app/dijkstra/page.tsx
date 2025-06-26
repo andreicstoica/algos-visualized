@@ -260,7 +260,7 @@ export default function DijkstraPage() {
             <div className="flex w-full gap-2">
               {frameIdx === steps.length - 1 ? (
                 <Button
-                  onClick={() => router.replace("/dijkstra")}
+                  onClick={() => window.location.reload()}
                   className="bg-secondary-background text-secondary-foreground w-full flex-1"
                 >
                   Restart
