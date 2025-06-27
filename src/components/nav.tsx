@@ -17,7 +17,7 @@ export default function Nav() {
             path === "/" ||
               path === "/quick-sort" ||
               path === "/dijkstra" ||
-              path === "convex-hull"
+              path === "/convex-hull"
               ? "bg-black text-white"
               : "bg-main text-black",
           )}
