@@ -111,8 +111,12 @@ export default function ConvexHullPage() {
         context.save();
         context.globalCompositeOperation = "destination-over"; // draw edges behind nodes
 
+        const edgeColor =
+          step!.phase === "lower"
+            ? "#3fb528" // lower hull green
+            : "#6495ED";
         // draw lower‐hull edges
-        context.strokeStyle = "#3fb528";
+        context.strokeStyle = edgeColor;
         context.lineWidth = 2;
         context.beginPath();
         for (let i = 1; i < step!.lowerHull.length; i++) {
@@ -124,7 +128,7 @@ export default function ConvexHullPage() {
         context.stroke();
 
         // draw upper‐hull edges
-        context.strokeStyle = "#6495ED";
+        context.strokeStyle = edgeColor;
         context.lineWidth = 2;
         context.beginPath();
         for (let i = 1; i < step!.upperHull.length; i++) {
@@ -146,7 +150,7 @@ export default function ConvexHullPage() {
             // dashed line B→P
             context.save();
             context.setLineDash([5, 5]);
-            context.strokeStyle = "yellow";
+            context.strokeStyle = edgeColor;
             context.lineWidth = 2;
             context.beginPath();
             context.moveTo(B!.x + BOX_SIZE / 2, B!.y + BOX_SIZE / 2);
