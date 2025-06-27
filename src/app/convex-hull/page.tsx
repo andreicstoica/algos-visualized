@@ -3,7 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-import { monotoneChain, generateGraph, type Point } from "@/lib/convex-hull";
+import {
+  monotoneChain,
+  describeStep,
+  generateGraph,
+  type MonotoneChainStep,
+  type Point,
+} from "@/lib/convex-hull";
 import Canvas from "@/components/canvas";
 import {
   Card,
@@ -30,8 +36,8 @@ export default function ConvexHullPage() {
   const initialDims = useRef<{ w: number; h: number } | null>(null);
 
   // stepper state management
-  //const [frameIdx, setFrameIdx] = useState(0);
-  //const [steps, setSteps] = useState<DijkstraStep[]>([]);
+  const [frameIdx, setFrameIdx] = useState(0);
+  const [steps, setSteps] = useState<MonotoneChainStep[]>([]);
 
   useEffect(() => {
     const w = window.innerWidth - window.innerWidth * 0.1;
@@ -42,9 +48,13 @@ export default function ConvexHullPage() {
     setCanvasHeight(h);
     initialDims.current = { w: innerW, h: innerH };
 
-    // Generate once into a local var
+    // generate once into a local var
     const newGraph = generateGraph(NUM_NODES, w - 2 * PADDING, h - 3 * PADDING);
     setGraph(newGraph);
+
+    // get steps for solution
+    const newSteps = monotoneChain(newGraph);
+    setSteps(newSteps);
 
     // Derive steps from that same local tree
     //const newSteps = dijkstra(newTree);
@@ -109,6 +119,14 @@ export default function ConvexHullPage() {
   };
   /// END DRAW ///
 
+  // handlers for next/back
+  const nextFrame = () => {
+    setFrameIdx((idx) => Math.min(idx + 1, steps.length - 1));
+  };
+  const prevFrame = () => {
+    setFrameIdx((idx) => Math.max(idx - 1, 0));
+  };
+
   return (
     <div className="mx-2 my-20">
       <div className="grid grid-cols-[1fr_auto] grid-rows-1 gap-4">
@@ -120,9 +138,42 @@ export default function ConvexHullPage() {
             <div>Convex Hull;</div>
             <div>Monotone Chain Algorithm</div>
           </CardTitle>
-          <CardDescription className="flex flex-col gap-1">hi!</CardDescription>
-
+          <CardDescription className="flex flex-col gap-1">
+            <div className="text-md font-black">
+              Step {frameIdx + 1} / {steps.length}
+            </div>
+            <p className="mb-2 h-14 overflow-y-auto font-medium text-pretty whitespace-pre-line">
+              {steps.length > 0
+                ? describeStep(steps[frameIdx]!)
+                : "No steps to display."}
+            </p>
+          </CardDescription>
           <CardAction className="flex h-full w-full flex-grow flex-col justify-between gap-2">
+            <div className="flex w-full gap-2">
+              {frameIdx === steps.length - 1 ? (
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                >
+                  Restart
+                </Button>
+              ) : (
+                <Button
+                  onClick={prevFrame}
+                  disabled={frameIdx === 0}
+                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                >
+                  Back
+                </Button>
+              )}
+              <Button
+                onClick={nextFrame}
+                disabled={frameIdx === steps.length - 1}
+                className="w-full flex-1"
+              >
+                Next
+              </Button>
+            </div>
             <Button onClick={() => router.push("/")} className="w-full">
               <House />
               <ArrowUturnLeftIcon />
