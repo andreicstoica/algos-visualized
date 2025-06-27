@@ -14,9 +14,20 @@ import Canvas from "@/components/canvas";
 import {
   Card,
   CardAction,
+  CardContent,
   CardDescription,
+  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { House } from "lucide-react";
 import { ArrowUturnLeftIcon } from "@heroicons/react/20/solid";
@@ -38,6 +49,9 @@ export default function ConvexHullPage() {
   // stepper state management
   const [frameIdx, setFrameIdx] = useState(0);
   const [steps, setSteps] = useState<MonotoneChainStep[]>([]);
+
+  // intro
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     const w = window.innerWidth - window.innerWidth * 0.1;
@@ -199,58 +213,100 @@ export default function ConvexHullPage() {
   const step = steps[frameIdx];
   return (
     <div className="mx-2 my-20">
-      <div className="grid grid-cols-[1fr_auto] grid-rows-1 gap-4">
-        {canvasWidth && canvasHeight && (
-          <Canvas width={canvasWidth} height={canvasHeight} draw={treeDraw} />
-        )}
-        <Card className="bg-secondary-background mr-12 w-100 justify-around p-4">
-          <CardTitle className="text-center text-lg">
-            <div>Convex Hull;</div>
-            <div>Monotone Chain Algorithm</div>
-          </CardTitle>
-          <CardDescription className="…">
-            <div className="text-md font-black">
-              Step {frameIdx + 1} / {steps.length}
-              {step && (
-                <p className="mb-2 h-14 overflow-y-auto font-medium text-pretty whitespace-pre-line">
-                  {describeStep(step)}
-                </p>
-              )}
+      {/* 1) Intro Alert */}
+      <AlertDialog open={showIntro}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Convex Hull: Monotone Chain</AlertDialogTitle>
+
+          <AlertDialogDescription asChild>
+            <div className="flex flex-col gap-3 text-sm leading-relaxed">
+              The Monotone Chain algorithm computes a bounding shape (convex
+              hull) around a set of points by:
+              <ul className="ml-8 list-decimal">
+                <li>Sorting points from left to right</li>
+                <li>Finding the outermost edge on top</li>
+                <li>Then doing the same for the bottom</li>
+              </ul>
+              <p>
+                It does this in
+                <code className="mx-2 inline font-mono">O(n·log n)</code>
+                time, which is pretty fast! This demo will walk you through
+                everything step by step.
+              </p>
             </div>
-          </CardDescription>
-          <CardAction className="flex h-full w-full flex-grow flex-col justify-between gap-2">
-            <div className="flex w-full gap-2">
-              {frameIdx === steps.length - 1 ? (
-                <Button
-                  onClick={() => window.location.reload()}
-                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
-                >
-                  Restart
-                </Button>
-              ) : (
-                <Button
-                  onClick={prevFrame}
-                  disabled={frameIdx === 0}
-                  className="bg-secondary-background text-secondary-foreground w-full flex-1"
-                >
-                  Back
-                </Button>
-              )}
-              <Button
-                onClick={nextFrame}
-                disabled={frameIdx === steps.length - 1}
-                className="w-full flex-1"
-              >
-                Next
+          </AlertDialogDescription>
+
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel
+              type="button"
+              onClick={() => router.push("/")}
+              className="w-full"
+            >
+              Back
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button type="submit" className="w-full">
+                Continue
               </Button>
-            </div>
-            <Button onClick={() => router.push("/")} className="w-full">
-              <House />
-              <ArrowUturnLeftIcon />
-            </Button>
-          </CardAction>
-        </Card>
-      </div>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {!showIntro && (
+        <div className="grid grid-cols-[1fr_auto] grid-rows-1 gap-4">
+          {canvasWidth && canvasHeight && (
+            <Canvas width={canvasWidth} height={canvasHeight} draw={treeDraw} />
+          )}
+          <Card className="bg-secondary-background mr-12 w-100 justify-around p-4">
+            <CardTitle className="text-center text-lg">
+              <div>Convex Hull;</div>
+              <div>Monotone Chain Algorithm</div>
+            </CardTitle>
+            <CardDescription className="…">
+              <div className="text-md font-black">
+                Step {frameIdx + 1} / {steps.length}
+                {step && (
+                  <p className="mb-2 h-14 overflow-y-auto font-medium text-pretty whitespace-pre-line">
+                    {describeStep(step)}
+                  </p>
+                )}
+              </div>
+            </CardDescription>
+            <CardAction className="flex h-full w-full flex-grow flex-col justify-between gap-2">
+              <div className="flex w-full gap-2">
+                {frameIdx === steps.length - 1 ? (
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                  >
+                    Restart
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={prevFrame}
+                    disabled={frameIdx === 0}
+                    className="bg-secondary-background text-secondary-foreground w-full flex-1"
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button
+                  onClick={nextFrame}
+                  disabled={frameIdx === steps.length - 1}
+                  className="w-full flex-1"
+                >
+                  Next
+                </Button>
+              </div>
+              <Button onClick={() => router.push("/")} className="w-full">
+                <House />
+                <ArrowUturnLeftIcon />
+              </Button>
+            </CardAction>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
