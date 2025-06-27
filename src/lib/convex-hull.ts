@@ -183,13 +183,13 @@ export function describeStep(step: MonotoneChainStep): string {
   switch (action) {
     case "start":
       return phase === "lower"
-        ? "Starting pass (left→right)…"
-        : "Starting opposite pass (right→left)…";
+        ? "Starting pass (left → right)…"
+        : "Starting opposite pass (right → left)…";
     case "compare":
       return (
         `Comparing edge ${
           step.lowerHull.length >= 2
-            ? `${step.lowerHull[step.lowerHull.length - 2]!.id}→` +
+            ? `${step.lowerHull[step.lowerHull.length - 2]!.id} → ` +
               `${step.lowerHull[step.lowerHull.length - 1]!.id}`
             : ""
         } with point ${currentPoint!.id}: ` +

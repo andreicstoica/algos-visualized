@@ -14,9 +14,7 @@ import Canvas from "@/components/canvas";
 import {
   Card,
   CardAction,
-  CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
@@ -245,7 +243,11 @@ export default function ConvexHullPage() {
               Back
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                onClick={() => setShowIntro(false)}
+                className="w-full"
+              >
                 Continue
               </Button>
             </AlertDialogAction>
