@@ -2,7 +2,6 @@ import { Stack } from "./stack";
 
 export type Point = {
   id: number;
-  visited: boolean;
   x: number;
   y: number;
 };
@@ -70,6 +69,8 @@ export function monotoneChain(points: Point[]): MonotoneChainStep[] {
         upperHull: [],
       });
     }
+
+    // add point
     lowerHull.push(point);
 
     steps.push({
@@ -88,7 +89,7 @@ export function monotoneChain(points: Point[]): MonotoneChainStep[] {
   for (const point of reversePoints) {
     while (
       upperHull.size() >= 2 &&
-      crossProduct(lowerHull.peek2()!, lowerHull.peek()!, point) <= 0
+      crossProduct(upperHull.peek2()!, upperHull.peek()!, point) <= 0
     ) {
       steps.push({
         currentPoint: point,
@@ -110,6 +111,8 @@ export function monotoneChain(points: Point[]): MonotoneChainStep[] {
         upperHull: upperHull.toArray(),
       });
     }
+
+    // add point
     upperHull.push(point);
 
     steps.push({
@@ -154,7 +157,6 @@ export function generateGraph(
 
     pointArr.push({
       id: i,
-      visited: false,
       x,
       y,
     });
@@ -173,7 +175,7 @@ export function describeStep(step: MonotoneChainStep): string {
     case "start":
       return phase === "lower" ? "Begin lower pass." : "Begin upper pass.";
     case "compare":
-      return `${pDesc}: cross‐product = ${cp!.toFixed(1)}; ${
+      return `${pDesc}: cross‐product = ${cp!.toString()}; ${
         cp! <= 0 ? "will pop" : "will keep"
       }`;
     case "pop":

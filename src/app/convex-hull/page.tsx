@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { House } from "lucide-react";
 import { ArrowUturnLeftIcon } from "@heroicons/react/20/solid";
+import { frame } from "framer-motion";
 
 // CONSTANTS
 const BOX_SIZE = 30; // node rectangle square
@@ -55,10 +56,6 @@ export default function ConvexHullPage() {
     // get steps for solution
     const newSteps = monotoneChain(newGraph);
     setSteps(newSteps);
-
-    // Derive steps from that same local tree
-    //const newSteps = dijkstra(newTree);
-    //setSteps(newSteps);
 
     setCanvasWidth(w);
     setCanvasHeight(h);
@@ -98,8 +95,47 @@ export default function ConvexHullPage() {
 
       // draw nodes
       graph.forEach((point) => {
-        // black object shape
-        context.fillStyle = "black";
+        const step = steps[frameIdx];
+
+        context.save();
+        context.globalCompositeOperation = "destination-over"; // draw edges behind nodes
+
+        // draw lower‐hull edges
+        context.strokeStyle = "blue";
+        context.lineWidth = 2;
+        context.beginPath();
+        for (let i = 1; i < step!.lowerHull.length; i++) {
+          const a = step!.lowerHull[i - 1];
+          const b = step!.lowerHull[i];
+          context.moveTo(a!.x + BOX_SIZE / 2, a!.y + BOX_SIZE / 2);
+          context.lineTo(b!.x + BOX_SIZE / 2, b!.y + BOX_SIZE / 2);
+        }
+        context.stroke();
+
+        // draw upper‐hull edges
+        context.strokeStyle = "red";
+        context.lineWidth = 2;
+        context.beginPath();
+        for (let i = 1; i < step!.upperHull.length; i++) {
+          const a = step!.upperHull[i - 1];
+          const b = step!.upperHull[i];
+          context.moveTo(a!.x + BOX_SIZE / 2, a!.y + BOX_SIZE / 2);
+          context.lineTo(b!.x + BOX_SIZE / 2, b!.y + BOX_SIZE / 2);
+        }
+        context.stroke();
+        context.restore();
+
+        // draw nodes
+        const inLower = step!.lowerHull.some((p) => p.id === point.id);
+        const inUpper = step!.upperHull.some((p) => p.id === point.id);
+        // black default shape, grey if in stack, green if active
+        if (step!.currentPoint && point.id === step!.currentPoint.id) {
+          context.fillStyle = "green";
+        } else if (inLower || inUpper) {
+          context.fillStyle = "grey";
+        } else {
+          context.fillStyle = "black";
+        }
         context.fillRect(point.x, point.y, BOX_SIZE, BOX_SIZE);
 
         // white text inside
