@@ -20,12 +20,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { House } from "lucide-react";
 import { ArrowUturnLeftIcon } from "@heroicons/react/20/solid";
-import { frame } from "framer-motion";
 
 // CONSTANTS
 const BOX_SIZE = 30; // node rectangle square
 const PADDING = 30;
-const NUM_NODES = 10;
+const NUM_NODES = 9;
 
 export default function ConvexHullPage() {
   const router = useRouter();
@@ -101,7 +100,7 @@ export default function ConvexHullPage() {
         context.globalCompositeOperation = "destination-over"; // draw edges behind nodes
 
         // draw lower‐hull edges
-        context.strokeStyle = "blue";
+        context.strokeStyle = "#3fb528";
         context.lineWidth = 2;
         context.beginPath();
         for (let i = 1; i < step!.lowerHull.length; i++) {
@@ -113,7 +112,7 @@ export default function ConvexHullPage() {
         context.stroke();
 
         // draw upper‐hull edges
-        context.strokeStyle = "red";
+        context.strokeStyle = "#6495ED";
         context.lineWidth = 2;
         context.beginPath();
         for (let i = 1; i < step!.upperHull.length; i++) {
@@ -123,6 +122,40 @@ export default function ConvexHullPage() {
           context.lineTo(b!.x + BOX_SIZE / 2, b!.y + BOX_SIZE / 2);
         }
         context.stroke();
+
+        // only for compare steps, show dotted line B→P and halo on B
+        if (step!.action === "compare" && step!.currentPoint) {
+          const hull =
+            step!.phase === "lower" ? step!.lowerHull : step!.upperHull;
+          if (hull.length >= 1) {
+            const B = hull[hull.length - 1]; // stack top
+            const P = step!.currentPoint;
+
+            // dashed line B→P
+            context.save();
+            context.setLineDash([5, 5]);
+            context.strokeStyle = "yellow";
+            context.lineWidth = 2;
+            context.beginPath();
+            context.moveTo(B!.x + BOX_SIZE / 2, B!.y + BOX_SIZE / 2);
+            context.lineTo(P.x + BOX_SIZE / 2, P.y + BOX_SIZE / 2);
+            context.stroke();
+            context.restore();
+
+            // highlight B with a halo
+            context.beginPath();
+            context.arc(
+              B!.x + BOX_SIZE / 2,
+              B!.y + BOX_SIZE / 2,
+              BOX_SIZE * 0.9,
+              0,
+              2 * Math.PI,
+            );
+            context.strokeStyle = "red";
+            context.lineWidth = 3;
+            context.stroke();
+          }
+        }
         context.restore();
 
         // draw nodes
@@ -163,6 +196,7 @@ export default function ConvexHullPage() {
     setFrameIdx((idx) => Math.max(idx - 1, 0));
   };
 
+  const step = steps[frameIdx];
   return (
     <div className="mx-2 my-20">
       <div className="grid grid-cols-[1fr_auto] grid-rows-1 gap-4">
@@ -174,15 +208,15 @@ export default function ConvexHullPage() {
             <div>Convex Hull;</div>
             <div>Monotone Chain Algorithm</div>
           </CardTitle>
-          <CardDescription className="flex flex-col gap-1">
+          <CardDescription className="…">
             <div className="text-md font-black">
               Step {frameIdx + 1} / {steps.length}
+              {step && (
+                <p className="mb-2 h-14 overflow-y-auto font-medium text-pretty whitespace-pre-line">
+                  {describeStep(step)}
+                </p>
+              )}
             </div>
-            <p className="mb-2 h-14 overflow-y-auto font-medium text-pretty whitespace-pre-line">
-              {steps.length > 0
-                ? describeStep(steps[frameIdx]!)
-                : "No steps to display."}
-            </p>
           </CardDescription>
           <CardAction className="flex h-full w-full flex-grow flex-col justify-between gap-2">
             <div className="flex w-full gap-2">
