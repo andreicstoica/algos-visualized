@@ -82,6 +82,15 @@ export function monotoneChain(points: Point[]): MonotoneChainStep[] {
     });
   }
 
+  // LOWER PASS DONE
+  steps.push({
+    phase: "lower",
+    action: "done",
+    // after lower is built, upperHull is still empty
+    lowerHull: lowerHull.toArray(),
+    upperHull: [],
+  });
+
   // upper hull:
   // - same as above, but reversing sortedPoints
   const upperHull = new Stack<Point>();
@@ -124,10 +133,13 @@ export function monotoneChain(points: Point[]): MonotoneChainStep[] {
     });
   }
 
-  // combine the hulls
-  // - need to pop first of upper and last of lower to avoid overlaping nodes
-  //const trimmedLower = lowerHull.slice(0, lowerHull.size() - 1);
-  //const trimmedUpper = upperHull.slice(1);
+  // UPPER PASS DONE
+  steps.push({
+    phase: "upper",
+    action: "done",
+    lowerHull: lowerHull.toArray(),
+    upperHull: upperHull.toArray(),
+  });
 
   return steps;
 }
@@ -168,24 +180,29 @@ export function generateGraph(
 // helper for text on viz
 export function describeStep(step: MonotoneChainStep): string {
   const { phase, action, currentPoint, cp } = step;
-  const pDesc = currentPoint
-    ? `Point (${currentPoint.x},${currentPoint.y})`
-    : "";
   switch (action) {
     case "start":
-      return phase === "lower" ? "Begin lower pass." : "Begin upper pass.";
+      return phase === "lower"
+        ? "Starting pass (left → right)…"
+        : "Starting opposite pass (right → left)…";
     case "compare":
-      return `${pDesc}: cross‐product = ${cp!.toString()}; ${
-        cp! <= 0 ? "will pop" : "will keep"
-      }`;
+      return (
+        `Comparing edge ${
+          step.lowerHull.length >= 2
+            ? `${step.lowerHull[step.lowerHull.length - 2]!.id} → ` +
+              `${step.lowerHull[step.lowerHull.length - 1]!.id}`
+            : ""
+        } with point ${currentPoint!.id}: ` +
+        `\n Cross is ${cp! > 0 ? "positive, so let's keep." : "negative, pop it off!"}`
+      );
     case "pop":
-      return `Pop top of ${phase} stack because cross ≤ 0.`;
+      return `Returning to point ${step.lowerHull[step.lowerHull.length - 1]!.id}. \n Onto the next comparison!`;
     case "push":
-      return `Push ${pDesc} onto ${phase} stack.`;
+      return `Pushing point ${currentPoint!.id} onto comparison stack.`;
     case "done":
       return phase === "lower"
-        ? "Lower done; switch to upper!"
-        : "Upper done; hull construction finished 😎👊";
+        ? "Pass complete! Moving to the next side..."
+        : "Both passes done! Convex hull has now been built 😎 👊";
     default:
       return "";
   }
