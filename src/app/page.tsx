@@ -13,10 +13,10 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <main className="flex flex-1 items-center justify-center gap-6">
-      <Card className="bg-secondary-background w-fit px-4">
+    <main className="flex flex-1 flex-col items-center justify-around gap-4 p-4 md:flex-row">
+      <Card className="bg-secondary-background flex w-full flex-col px-4 md:w-fit">
         <CardTitle>Quick Sort</CardTitle>
-        <CardDescription className="max-w-sm text-pretty">
+        <CardDescription className="flex-1 text-pretty sm:w-full md:max-w-sm">
           A highly efficient, in-place sorting algorithm using a &apos;divide
           and conquer&apos; strategy around a &apos;pivot&apos;.
         </CardDescription>
@@ -30,24 +30,27 @@ export default function HomePage() {
         </CardAction>
       </Card>
 
-      <Card className="bg-secondary-background w-fit px-4">
-        <CardTitle>Graph Traversal</CardTitle>
-        <CardDescription className="max-w-sm text-pretty">
-          Explore depth-first and breadth-first search algorithms with
-          interactive node-by-node visualization. Coming soon.
+      <Card className="bg-secondary-background flex w-full flex-col px-4 md:w-fit">
+        <CardTitle>Convex Hull</CardTitle>
+        <CardDescription className="flex-1 text-pretty sm:w-full md:max-w-sm">
+          Visualize the Graham scan algorithm find the smallest convex polygon
+          that contains all points in a set.
         </CardDescription>
         <CardAction>
-          <Button disabled className="px-5 py-3">
-            Coming Soon
+          <Button
+            onClick={() => router.push("/convex-hull")}
+            className="px-5 py-3"
+          >
+            Visit
           </Button>
         </CardAction>
       </Card>
 
-      <Card className="bg-secondary-background w-fit px-4">
+      <Card className="bg-secondary-background flex w-full flex-col px-4 md:w-fit">
         <CardTitle>Dijkstra&apos;s</CardTitle>
-        <CardDescription className="max-w-sm text-pretty">
+        <CardDescription className="flex-1 text-pretty sm:w-full md:max-w-sm">
           Find the shortest path using Dijkstra&apos;s algorithm, which
-          revolutionized computer science. Coming soon.
+          revolutionized computer science.
         </CardDescription>
         <CardAction>
           <Button
