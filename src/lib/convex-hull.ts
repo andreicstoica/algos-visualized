@@ -201,7 +201,7 @@ export function describeStep(step: MonotoneChainStep): string {
       return `Pushing point ${currentPoint!.id} onto comparison stack.`;
     case "done":
       return phase === "lower"
-        ? "Pass complete! Moving to the opposite side..."
+        ? "Pass complete! Moving to the next side..."
         : "Both passes done! Convex hull has now been built 😎 👊";
     default:
       return "";
