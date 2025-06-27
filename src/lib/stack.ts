@@ -65,6 +65,7 @@ export class Stack<T> {
   }
 }
 
+/*
 // Example usage
 const stack = new Stack<number>();
 stack.push(1);
@@ -96,3 +97,4 @@ console.log("Is stack empty?", stack.isEmpty());
 stack.clear();
 console.log("Is stack empty?", stack.isEmpty());
 // Output: true
+ */
